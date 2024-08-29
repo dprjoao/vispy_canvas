@@ -21,7 +21,7 @@ class AxisAlignedImage(scene.visuals.Image):
   def __init__(self, image_funcs, axis='z', pos=0, limit=None,
                seismic_coord_system=True,
                cmaps=['grays'], clims=None,
-               interpolation='spline32', method='auto'):
+               interpolation='spline36', method='auto'):
 
     assert clims is not None, 'clim must be specified explicitly.'
 

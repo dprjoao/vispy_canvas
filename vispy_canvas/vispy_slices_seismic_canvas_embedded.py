@@ -2,7 +2,7 @@ import numpy as np
 from PyQt5 import QtWidgets
 from PyQt5 import QtCore
 from vispy import scene, app
-from seismic_canvas import volume_slices, XYZAxis, CanvasControls
+from vispy_canvas import volume_slices, XYZAxis, CanvasControls
 from typing import Union, Tuple, List, Dict
 
 IMAGE_SHAPE = (600, 800)  # (height, width)

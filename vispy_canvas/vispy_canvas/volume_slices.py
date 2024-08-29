@@ -15,7 +15,7 @@ def volume_slices(volumes, x_pos=None, y_pos=None, z_pos=None,
                   preproc_funcs=None,
                   seismic_coord_system=True,
                   cmaps='grays', clims=None,
-                  interpolation='nearest', method='auto'):
+                  interpolation='spline36', method='auto'):
   """ Acquire a list of slices in the form of AxisAlignedImage.
   The list can be attached to a SeismicCanvas to visualize the volume
   in 3D interactively.
