@@ -1,7 +1,7 @@
 import numpy as np
 from PyQt5 import QtWidgets, QtCore
 from vispy import scene
-from vispy_canvas import volume_slices, XYZAxis, CanvasControls
+from vispy_canvas import volume_slices, XYZAxis, CanvasControls, AxisAlignedImage
 from typing import Union, Tuple, List, Dict
 
 IMAGE_SHAPE = (600, 800)  # (height, width)
@@ -114,19 +114,17 @@ class CanvasWrapper(scene.SceneCanvas, CanvasControls):
     def load_data(self, filepath, dtype=np.float32):
         self.vol = np.load(filepath).astype(dtype)
         return self.vol
-    
-    def update_slices(self):
-        for slice_ in self.slices:
-            slice_.parent = None  # Remove old slices from the scene
+            
+    def set_position(self, pos, axis):
         
-        self.slices = volume_slices(self.vol, 
-                                    x_pos=self.slice_x, 
-                                    y_pos=self.slice_y, 
-                                    z_pos=self.slice_z, 
-                                    cmaps='gray')
+        if pos < 0 or len(self.slices) == 0:
+            return
         
-        for slice_ in self.slices:
-            slice_.parent = self.view.scene  # Add new slices to the scene
+        pos = int(pos)
+        
+        for node in self.slices:
+            if isinstance(node, AxisAlignedImage) and node.axis == axis:
+                node._update_location(pos)
 
 class MyMainWindow(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
@@ -200,15 +198,15 @@ class MyMainWindow(QtWidgets.QMainWindow):
 
     def update_x_slice(self, value):
         self._canvas_wrapper.slice_x = value
-        self._canvas_wrapper.update_slices()
+        self._canvas_wrapper.set_position(self._canvas_wrapper.slice_x , 'x')
 
     def update_y_slice(self, value):
         self._canvas_wrapper.slice_y = value
-        self._canvas_wrapper.update_slices()
+        self._canvas_wrapper.set_position(self._canvas_wrapper.slice_y , 'y')
 
     def update_z_slice(self, value):
         self._canvas_wrapper.slice_z = value
-        self._canvas_wrapper.update_slices()
+        self._canvas_wrapper.set_position(self._canvas_wrapper.slice_z , 'z')
 
     def step_slice(self, axis, step):
         if axis == 'x':
@@ -216,18 +214,21 @@ class MyMainWindow(QtWidgets.QMainWindow):
             new_value = np.clip(new_value, 0, self._canvas_wrapper.vol.shape[0] - 1)
             self._canvas_wrapper.slice_x = new_value
             self.x_slider.setValue(new_value)
+            self._canvas_wrapper.set_position(self._canvas_wrapper.slice_x, axis)
         elif axis == 'y':
             new_value = self._canvas_wrapper.slice_y + step
             new_value = np.clip(new_value, 0, self._canvas_wrapper.vol.shape[1] - 1)
             self._canvas_wrapper.slice_y = new_value
             self.y_slider.setValue(new_value)
+            self._canvas_wrapper.set_position(self._canvas_wrapper.slice_y, axis)
         elif axis == 'z':
             new_value = self._canvas_wrapper.slice_z + step
             new_value = np.clip(new_value, 0, self._canvas_wrapper.vol.shape[2] - 1)
             self._canvas_wrapper.slice_z = new_value
             self.z_slider.setValue(new_value)
+            self._canvas_wrapper.set_position(self._canvas_wrapper.slice_z, axis)
 
-        self._canvas_wrapper.update_slices()
+        
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication([])
