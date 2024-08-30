@@ -8,7 +8,7 @@ from typing import Union, Tuple, List, Dict
 IMAGE_SHAPE = (600, 800)  # (height, width)
 CANVAS_SIZE = (800, 600)  # (width, height)
 
-class CanvasWrapper(scene.SceneCanvas, CanvasControls):
+class SeismicCanvas(scene.SceneCanvas, CanvasControls):
     
     def __init__(
         self,
@@ -118,79 +118,4 @@ class CanvasWrapper(scene.SceneCanvas, CanvasControls):
     def load_data(self, filepath, dtype=np.float32):
         self.vol = np.load(filepath).astype(dtype)
         return self.vol
-    
-    def update_slices(self):
-        for slice_ in self.slices:
-            slice_.parent = None  # Remove old slices from the scene
-        
-        self.slices = volume_slices(self.vol, 
-                                    x_pos=self.slice_x, 
-                                    y_pos=self.slice_y, 
-                                    z_pos=self.slice_z, 
-                                    cmaps='gray')
-        
-        for slice_ in self.slices:
-            slice_.parent = self.view.scene  # Add new slices to the scene
 
-class MyMainWindow(QtWidgets.QMainWindow):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        central_widget = QtWidgets.QWidget()
-        main_layout = QtWidgets.QVBoxLayout()
-
-        self._canvas_wrapper = CanvasWrapper()
-        main_layout.addWidget(self._canvas_wrapper.native)
-
-        # Create UI controls
-        control_layout = QtWidgets.QHBoxLayout()
-
-        # X Slice Slider
-        self.x_slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
-        self.x_slider.setMinimum(0)
-        self.x_slider.setMaximum(self._canvas_wrapper.vol.shape[0] - 1)
-        self.x_slider.setValue(self._canvas_wrapper.slice_x)
-        self.x_slider.valueChanged.connect(self.update_x_slice)
-        control_layout.addWidget(QtWidgets.QLabel("X Slice"))
-        control_layout.addWidget(self.x_slider)
-
-        # Y Slice Slider
-        self.y_slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
-        self.y_slider.setMinimum(0)
-        self.y_slider.setMaximum(self._canvas_wrapper.vol.shape[1] - 1)
-        self.y_slider.setValue(self._canvas_wrapper.slice_y)
-        self.y_slider.valueChanged.connect(self.update_y_slice)
-        control_layout.addWidget(QtWidgets.QLabel("Y Slice"))
-        control_layout.addWidget(self.y_slider)
-
-        # Z Slice Slider
-        self.z_slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
-        self.z_slider.setMinimum(0)
-        self.z_slider.setMaximum(self._canvas_wrapper.vol.shape[2] - 1)
-        self.z_slider.setValue(self._canvas_wrapper.slice_z)
-        self.z_slider.valueChanged.connect(self.update_z_slice)
-        control_layout.addWidget(QtWidgets.QLabel("Z Slice"))
-        control_layout.addWidget(self.z_slider)
-
-        main_layout.addLayout(control_layout)
-        central_widget.setLayout(main_layout)
-        self.setCentralWidget(central_widget)
-        self.setWindowTitle('3D Viewer')
-
-    def update_x_slice(self, value):
-        self._canvas_wrapper.slice_x = value
-        self._canvas_wrapper.update_slices()
-
-    def update_y_slice(self, value):
-        self._canvas_wrapper.slice_y = value
-        self._canvas_wrapper.update_slices()
-
-    def update_z_slice(self, value):
-        self._canvas_wrapper.slice_z = value
-        self._canvas_wrapper.update_slices()
-
-if __name__ == "__main__":
-    app = QtWidgets.QApplication([])
-    win = MyMainWindow()
-    win.show()
-    app.exec_()
