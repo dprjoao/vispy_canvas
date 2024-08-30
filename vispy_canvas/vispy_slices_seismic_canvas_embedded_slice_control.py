@@ -91,13 +91,21 @@ class CanvasWrapper(scene.SceneCanvas, CanvasControls):
                                                     azimuth=self.azimuth, 
                                                     elevation=self.elevation, 
                                                     fov=self.fov, 
-                                                    distance=500)
+                                                    distance=500,
+                                                    scale_factor = self.scale_factor)
         
+
         self.view.camera = self.camera
 
-        self.scale_factor = self.view.camera.scale_factor
-        self.zoom_factor = self.view.camera.zoom_factor
 
+        # Automatically set the range of the canvas, display, and wrap up.
+        if auto_range: self.camera.set_range()
+        # Record the scale factor for a consistent camera reset.
+        self.scale_factor = self.camera.scale_factor
+        # Zoom in or out after auto range setting.
+        self.zoom_factor = zoom_factor
+        self.camera.scale_factor /= self.zoom_factor
+        self.show()
         # Add XYZ Axis to the scene
         self.axis = XYZAxis()
         self.axis.parent = self.view
