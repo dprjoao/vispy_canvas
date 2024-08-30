@@ -66,7 +66,7 @@ class XYZAxis(scene.visuals.XYZAxis):
   def on_mouse_move(self, event):
     # Make sure the axis is rotating with the camera.
     if event.button == 1 and event.is_dragging:
-      self._update_axis()
+        self._update_axis()
 
   def set_anchor(self, mouse_press_event):
     """ Set an anchor point (2D screen coordinates) when left click
