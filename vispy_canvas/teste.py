@@ -1,7 +1,7 @@
-from seismic_canvas import XYZAxis
-from seismic_canvas import Colorbar
-from seismic_canvas import SeismicCanvas
-from seismic_canvas import volume_slices
+from vispy_canvas import XYZAxis
+from vispy_canvas import Colorbar
+from vispy_canvas import SeismicCanvas
+from vispy_canvas import volume_slices
 import numpy as np
 from vispy.scene import SceneCanvas
 
