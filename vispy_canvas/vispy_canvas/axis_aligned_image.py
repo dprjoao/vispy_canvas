@@ -190,11 +190,19 @@ class AxisAlignedImage(scene.visuals.Image):
 
     self._update_location()
 
-  def _update_location(self):
+  def _update_location(self, pos = None):
     """ Update the image plane to the dragged location and redraw this image.
     """
-    self.pos += self.offset
-    self.pos = int(np.round(self.pos)) # must round to nearest integer location
+    if pos is None:
+        self.pos += self.offset
+        # must round to nearest integer location
+        self.pos = int(np.round(self.pos))
+    else:
+      self.pos = pos
+      if self.pos < self.limit[0]:
+          self.pos = self.limit[0]
+      if self.pos > self.limit[1]:
+          self.pos = self.limit[1]
 
     # Update the transformation in order to move to new location.
     self.transform.reset()
