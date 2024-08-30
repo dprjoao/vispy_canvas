@@ -56,8 +56,8 @@ class CanvasControls:
                     if self.hover_on is not None: # de-highlight previous hover_on
                         self.hover_on.highlight.visible = False
                     self.hover_on = hover_on
-                if self.hover_on is not None: # highlight the new hover_on
-                    self.hover_on.highlight.visible = True
+                    if self.hover_on is not None: # highlight the new hover_on
+                        self.hover_on.highlight.visible = True
 
             # Reenable the ViewBox interactive flag.
             self.view.interactive = True
