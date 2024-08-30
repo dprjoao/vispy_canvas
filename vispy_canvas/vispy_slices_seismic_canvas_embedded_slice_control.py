@@ -71,15 +71,15 @@ class CanvasWrapper(scene.SceneCanvas, CanvasControls):
         self.vol = self.load_data(filepath='train_seismic.npy')
 
         # Set initial slice indices
-        self.slice_x = self.vol.shape[0] // 2
-        self.slice_y = self.vol.shape[1] // 2
-        self.slice_z = self.vol.shape[2] // 2
-
+        self.slice_x = 0
+        self.slice_y = self.vol.shape[1] - 1
+        self.slice_z = 0
+        
         # Generate the slices using the volume_slices function
         self.slices = volume_slices(self.vol, 
-                                    x_pos=self.slice_x, 
-                                    y_pos=self.slice_y, 
-                                    z_pos=self.slice_z, 
+                                    x_pos=0, 
+                                    y_pos=0, 
+                                    z_pos=self.vol.shape[2] - 1, 
                                     cmaps='gray')
         
         # Add the slices to the scene
@@ -91,7 +91,7 @@ class CanvasWrapper(scene.SceneCanvas, CanvasControls):
                                                     azimuth=self.azimuth, 
                                                     elevation=self.elevation, 
                                                     fov=self.fov, 
-                                                    distance=500,
+                                                    distance=1500,
                                                     scale_factor = self.scale_factor)
         
 
@@ -151,7 +151,7 @@ class MyMainWindow(QtWidgets.QMainWindow):
         self.x_slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
         self.x_slider.setMinimum(0)
         self.x_slider.setMaximum(self._canvas_wrapper.vol.shape[0] - 1)
-        self.x_slider.setValue(self._canvas_wrapper.slice_x)
+        self.x_slider.setValue(0)
         self.x_slider.valueChanged.connect(self.update_x_slice)
         control_layout.addWidget(QtWidgets.QLabel("X Slice"))
         control_layout.addWidget(self.x_slider)
@@ -160,7 +160,7 @@ class MyMainWindow(QtWidgets.QMainWindow):
         self.y_slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
         self.y_slider.setMinimum(0)
         self.y_slider.setMaximum(self._canvas_wrapper.vol.shape[1] - 1)
-        self.y_slider.setValue(self._canvas_wrapper.slice_y)
+        self.y_slider.setValue(0)
         self.y_slider.valueChanged.connect(self.update_y_slice)
         control_layout.addWidget(QtWidgets.QLabel("Y Slice"))
         control_layout.addWidget(self.y_slider)
@@ -169,7 +169,7 @@ class MyMainWindow(QtWidgets.QMainWindow):
         self.z_slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
         self.z_slider.setMinimum(0)
         self.z_slider.setMaximum(self._canvas_wrapper.vol.shape[2] - 1)
-        self.z_slider.setValue(self._canvas_wrapper.slice_z)
+        self.z_slider.setValue(self._canvas_wrapper.vol.shape[2] - 1)
         self.z_slider.valueChanged.connect(self.update_z_slice)
         control_layout.addWidget(QtWidgets.QLabel("Z Slice"))
         control_layout.addWidget(self.z_slider)
@@ -183,20 +183,20 @@ class MyMainWindow(QtWidgets.QMainWindow):
         self.next_x_button.clicked.connect(lambda: self.step_slice('x', 1))
         control_layout.addWidget(self.next_x_button)
 
-        self.prev_y_button = QtWidgets.QPushButton("Previous Y Slice")
+        self.prev_y_button = QtWidgets.QPushButton("Next Y Slice")
         self.prev_y_button.clicked.connect(lambda: self.step_slice('y', -1))
         control_layout.addWidget(self.prev_y_button)
 
-        self.next_y_button = QtWidgets.QPushButton("Next Y Slice")
+        self.next_y_button = QtWidgets.QPushButton("Previous Y Slice")
         self.next_y_button.clicked.connect(lambda: self.step_slice('y', 1))
         control_layout.addWidget(self.next_y_button)
 
-        self.prev_z_button = QtWidgets.QPushButton("Previous Z Slice")
-        self.prev_z_button.clicked.connect(lambda: self.step_slice('z', -1))
+        self.prev_z_button = QtWidgets.QPushButton("Next Z Slice")
+        self.prev_z_button.clicked.connect(lambda: self.step_slice('z', 1))
         control_layout.addWidget(self.prev_z_button)
 
-        self.next_z_button = QtWidgets.QPushButton("Next Z Slice")
-        self.next_z_button.clicked.connect(lambda: self.step_slice('z', 1))
+        self.next_z_button = QtWidgets.QPushButton("Previous Z Slice")
+        self.next_z_button.clicked.connect(lambda: self.step_slice('z', -1))
         control_layout.addWidget(self.next_z_button)
 
         main_layout.addLayout(control_layout)
