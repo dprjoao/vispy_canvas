@@ -70,16 +70,15 @@ class CanvasWrapper(scene.SceneCanvas, CanvasControls):
         # Load seismic data
         self.vol = self.load_data(filepath='train_seismic.npy')
 
-        # Set initial slice indices
-        self.slice_x = 0
-        self.slice_y = self.vol.shape[1] - 1
-        self.slice_z = 0
+        self.xpos = 0
+        self.ypos = 0
+        self.zpos = self.vol.shape[2] - 1
         
         # Generate the slices using the volume_slices function
         self.slices = volume_slices(self.vol, 
-                                    x_pos=0, 
-                                    y_pos=0, 
-                                    z_pos=self.vol.shape[2] - 1, 
+                                    x_pos=self.xpos, 
+                                    y_pos=self.ypos, 
+                                    z_pos=self.zpos, 
                                     cmaps='gray')
         
         # Add the slices to the scene
