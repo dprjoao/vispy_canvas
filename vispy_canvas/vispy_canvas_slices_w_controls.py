@@ -29,7 +29,7 @@ class MyMainWindow(QtWidgets.QMainWindow):
         self.y_slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
         self.y_slider.setMinimum(0)
         self.y_slider.setMaximum(self._canvas_wrapper.vol.shape[1] - 1)
-        self.y_slider.setValue(0)
+        self.y_slider.setValue(self._canvas_wrapper.vol.shape[1] - 1)
         self.y_slider.valueChanged.connect(self.update_y_slice)
         control_layout.addWidget(QtWidgets.QLabel("Y Slice"))
         control_layout.addWidget(self.y_slider)
@@ -38,7 +38,7 @@ class MyMainWindow(QtWidgets.QMainWindow):
         self.z_slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
         self.z_slider.setMinimum(0)
         self.z_slider.setMaximum(self._canvas_wrapper.vol.shape[2] - 1)
-        self.z_slider.setValue(self._canvas_wrapper.vol.shape[2] - 1)
+        self.z_slider.setValue(0)
         self.z_slider.valueChanged.connect(self.update_z_slice)
         control_layout.addWidget(QtWidgets.QLabel("Z Slice"))
         control_layout.addWidget(self.z_slider)
@@ -74,36 +74,36 @@ class MyMainWindow(QtWidgets.QMainWindow):
         self.setWindowTitle('3D Viewer')
 
     def update_x_slice(self, value):
-        self._canvas_wrapper.slice_x = value
-        self._canvas_wrapper.set_position(self._canvas_wrapper.slice_x , 'x')
+        self._canvas_wrapper.xpos = value
+        self._canvas_wrapper.set_position(self._canvas_wrapper.xpos , 'x')
 
     def update_y_slice(self, value):
-        self._canvas_wrapper.slice_y = value
-        self._canvas_wrapper.set_position(self._canvas_wrapper.slice_y , 'y')
+        self._canvas_wrapper.ypos = value
+        self._canvas_wrapper.set_position(self._canvas_wrapper.ypos , 'y')
 
     def update_z_slice(self, value):
-        self._canvas_wrapper.slice_z = value
-        self._canvas_wrapper.set_position(self._canvas_wrapper.slice_z , 'z')
+        self._canvas_wrapper.zpos = value
+        self._canvas_wrapper.set_position(self._canvas_wrapper.zpos , 'z')
 
     def step_slice(self, axis, step):
         if axis == 'x':
-            new_value = self._canvas_wrapper.slice_x + step
+            new_value = self._canvas_wrapper.xpos + step
             new_value = np.clip(new_value, 0, self._canvas_wrapper.vol.shape[0] - 1)
-            self._canvas_wrapper.slice_x = new_value
+            self._canvas_wrapper.xpos = new_value
             self.x_slider.setValue(new_value)
-            self._canvas_wrapper.set_position(self._canvas_wrapper.slice_x, axis)
+            self._canvas_wrapper.set_position(self._canvas_wrapper.xpos, axis)
         elif axis == 'y':
-            new_value = self._canvas_wrapper.slice_y + step
+            new_value = self._canvas_wrapper.ypos + step
             new_value = np.clip(new_value, 0, self._canvas_wrapper.vol.shape[1] - 1)
-            self._canvas_wrapper.slice_y = new_value
+            self._canvas_wrapper.ypos = new_value
             self.y_slider.setValue(new_value)
-            self._canvas_wrapper.set_position(self._canvas_wrapper.slice_y, axis)
+            self._canvas_wrapper.set_position(self._canvas_wrapper.ypos, axis)
         elif axis == 'z':
-            new_value = self._canvas_wrapper.slice_z + step
+            new_value = self._canvas_wrapper.zpos + step
             new_value = np.clip(new_value, 0, self._canvas_wrapper.vol.shape[2] - 1)
-            self._canvas_wrapper.slice_z = new_value
+            self._canvas_wrapper.zpos = new_value
             self.z_slider.setValue(new_value)
-            self._canvas_wrapper.set_position(self._canvas_wrapper.slice_z, axis)
+            self._canvas_wrapper.set_position(self._canvas_wrapper.zpos, axis)
 
         
 
