@@ -3,6 +3,7 @@ from PyQt5 import QtWidgets, QtCore
 from vispy import scene
 from vispy_canvas import volume_slices, XYZAxis, CanvasControls, AxisAlignedImage
 from typing import Union, Tuple, List, Dict
+import h5py
 
 IMAGE_SHAPE = (600, 800)  # (height, width)
 CANVAS_SIZE = (800, 600)  # (width, height)
@@ -68,18 +69,19 @@ class CanvasWrapper(scene.SceneCanvas, CanvasControls):
         self.view = self.central_widget.add_view()
 
         # Load seismic data
-        self.vol = self.load_data(filepath='train_seismic.npy')
+        self.load_data(filepath='seismic_abl.h5')
 
         self.xpos = 0
         self.ypos = 0
-        self.zpos = self.vol.shape[2] - 1
-        
+        self.zpos = 0      
         # Generate the slices using the volume_slices function
         self.slices = volume_slices(self.vol, 
                                     x_pos=self.xpos, 
                                     y_pos=self.ypos, 
                                     z_pos=self.zpos, 
-                                    cmaps='gray')
+                                    cmaps='gray',
+                                    clims = [-1000, 1000]
+                                    )
         
         # Add the slices to the scene
         for slice_ in self.slices:
@@ -119,8 +121,11 @@ class CanvasWrapper(scene.SceneCanvas, CanvasControls):
         self.freeze()
 
     def load_data(self, filepath, dtype=np.float32):
-        self.vol = np.load(filepath).astype(dtype)
-        return self.vol
+        # Open the HDF5 file and read the chunked dataset
+        self.hdf5_file = h5py.File(filepath, 'r+')
+        # Access the dataset
+        self.vol = self.hdf5_file['74ea1350-14c0-4bcc-a5d1-02fa49095951']  # Adjust the path to match your dataset
+
             
     def set_position(self, pos, axis):
         
