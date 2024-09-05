@@ -49,7 +49,6 @@ def volume_slices(volumes, x_pos=None, y_pos=None, z_pos=None,
   # z-axis down seismic coordinate system, or z-axis up normal system.
   #if seismic_coord_system:
   for i_vol in range(n_vol):
-      volumes[i_vol] = volumes[i_vol][:, :, :]
       volumes[i_vol] = volumes[i_vol][:, :, ::-1]
   shape = volumes[0].shape
 
@@ -107,7 +106,7 @@ def volume_slices(volumes, x_pos=None, y_pos=None, z_pos=None,
         pos_list = [pos_list] # make it iterable, even only one element
       for pos in pos_list:
         pos = int(np.round(pos))
-        if seismic_coord_system and axis in ('y', 'z'):
+        if axis in ('y', 'z'):
           # Revert y and z axis in seismic coordinate system.
           pos = limit(axis)[1] - pos
         # Generate a list of image funcs for each input volume.
