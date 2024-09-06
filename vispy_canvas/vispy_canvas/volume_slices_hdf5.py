@@ -16,14 +16,17 @@ def volume_slices_hdf5(hdf5_file, dataset_name, x_pos=None, y_pos=None, z_pos=No
     - dataset_name: the name of the dataset within the HDF5 file
     """
     
-    # Open the HDF5 file
-    with h5py.File(hdf5_file, 'r') as f:
+    # Configure cache options for reading
+    rdcc_nbytes = 1024 * 1024 * 1024  # 64 MB cache size
+    rdcc_nslots = 1042  # Number of chunk slots in the cache
+    rdcc_w0 = 0.75  # Eviction policy
+
+    # Open the HDF5 file with cache settings
+    with h5py.File(hdf5_file, 'r', rdcc_nbytes=rdcc_nbytes, rdcc_nslots=rdcc_nslots, rdcc_w0=rdcc_w0) as f:
         dataset = f[dataset_name]
+        dataset = np.array(dataset)
         shape = dataset.shape
-        
-        # Configure cache for chunks if necessary (optional)
-        f.id.get_access_plist().set_chunk_cache(1024*1024*64, 521, 0.75)
-        
+
         # Check whether single volume or multiple volumes are provided
         if isinstance(dataset, (tuple, list)):
             n_vol = len(dataset)
@@ -62,19 +65,24 @@ def volume_slices_hdf5(hdf5_file, dataset_name, x_pos=None, y_pos=None, z_pos=No
         # Function that returns a function to provide the slice image at specified position
         def get_image_func(axis, i_vol):
             def slicing_at_axis(pos, get_shape=False):
-                pos = int(np.round(pos))
+
                 if get_shape:  # return the shape information
                     if axis == 'x': return shape[1], shape[2]
                     elif axis == 'y': return shape[0], shape[2]
                     elif axis == 'z': return shape[0], shape[1]
                 else:
-                    # Apply flip to x and y axes only, leave z as it is
-                    if axis == 'x': 
-                        return dataset[pos, :, :][::-1, ::-1]  # Flip both x and y
-                    elif axis == 'y': 
-                        return dataset[:, pos, :][::-1, ::-1]  # Flip both x and y
-                    elif axis == 'z': 
-                        return dataset[:, :, pos]  # No flip for z-axis slices
+                    pos = int(np.round(pos))
+                    print(pos)
+                    # Carrega a fatia e transforma em um numpy array para aplicar flip
+                    if axis == 'x':
+                        data_slice = dataset[pos, :, :]  # Carrega fatia ao longo do eixo x
+                        return data_slice[::-1, ::-1]  # Aplica o flip nos eixos x e y
+                    elif axis == 'y':
+                        data_slice = dataset[:, pos, :]  # Carrega fatia ao longo do eixo y
+                        return data_slice[::-1, ::-1]  # Aplica o flip nos eixos x e y
+                    elif axis == 'z':
+                        data_slice = dataset[:, :, pos]  # Carrega fatia ao longo do eixo z
+                        return data_slice  # Sem flip no eixo z
             return slicing_at_axis
 
         # Organize the slice positions
@@ -90,7 +98,7 @@ def volume_slices_hdf5(hdf5_file, dataset_name, x_pos=None, y_pos=None, z_pos=No
                     pos_list = [pos_list]  # make it iterable
                 for pos in pos_list:
                     pos = int(np.round(pos))
-                    if axis in ('y', 'z'):  # Adjust position for y and z axes
+                    if axis in ('y', 'z'):  # Ajusta posição para os eixos y e z
                         pos = limit(axis)[1] - pos
                     image_funcs = []
                     for i_vol in range(n_vol):
