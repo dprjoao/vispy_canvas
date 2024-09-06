@@ -27,7 +27,7 @@ class CanvasWrapper(scene.SceneCanvas, CanvasControls):
         azimuth: float = 50,
         elevation: float = 50,
         zoom_factor: float = 1.0,
-        axis_scales: Tuple = (1.0, 1.0, 1.0),
+        axis_scales: Tuple = (0.25, 0.25, 0.5),
         auto_range: bool = True,
 
         # for save
@@ -42,7 +42,8 @@ class CanvasWrapper(scene.SceneCanvas, CanvasControls):
                                    keys=keys, 
                                    show=True,
                                    bgcolor=bgcolor,
-                                   title=title)
+                                   title=title,
+                                   dpi=10)
 
         self.unfreeze()
 
@@ -58,6 +59,7 @@ class CanvasWrapper(scene.SceneCanvas, CanvasControls):
             zoom_factor = 1
         self.zoom_factor = zoom_factor
         self.share = share
+
 
         # Initialize attributes required by CanvasControls
         self.drag_mode = False
@@ -75,7 +77,7 @@ class CanvasWrapper(scene.SceneCanvas, CanvasControls):
         self.ypos = 0
         self.zpos = 0      
         # Generate the slices using the volume_slices function
-        self.slices = volume_slices_hdf5_pilot(self.vol, 
+        self.slices = volume_slices_hdf5_pilot.volume_slices(self.vol, 
                                     x_pos=self.xpos, 
                                     y_pos=self.ypos, 
                                     z_pos=self.zpos, 
@@ -83,9 +85,7 @@ class CanvasWrapper(scene.SceneCanvas, CanvasControls):
                                     clims = [-1000, 1000]
                                     )
         
-        # Add the slices to the scene
-        for slice_ in self.slices:
-            slice_.parent = self.view.scene
+
 
         # Set up a 3D camera
         self.camera = scene.cameras.TurntableCamera(parent=self.view.scene, 
@@ -96,8 +96,15 @@ class CanvasWrapper(scene.SceneCanvas, CanvasControls):
                                                     scale_factor = self.scale_factor)
         
 
-        self.view.camera = self.camera
 
+        self.view.camera = self.camera
+        # Individually scale up each axis.
+        # NOTE: this is kind of a cheating... not sure what issue it may bring up.
+        self.camera._flip_factors = axis_scales
+
+        # Add the slices to the scene
+        for slice_ in self.slices:
+            slice_.parent = self.view.scene
 
         # Automatically set the range of the canvas, display, and wrap up.
         if auto_range: self.camera.set_range()
@@ -121,8 +128,16 @@ class CanvasWrapper(scene.SceneCanvas, CanvasControls):
         self.freeze()
 
     def load_data(self, filepath, dtype=np.float32):
+        # Configure cache options for reading
+        rdcc_nbytes = 1024 * 1024 * 64  # 64 MB cache size
+        rdcc_nslots = 521  # Number of chunk slots in the cache
+        rdcc_w0 = 0.75  # Eviction policy
         # Open the HDF5 file and read the chunked dataset
-        self.hdf5_file = h5py.File(filepath, 'r+')
+        self.hdf5_file = h5py.File(filepath, 
+                                   'r+', 
+                                   rdcc_nbytes=rdcc_nbytes, 
+                                   rdcc_nslots=rdcc_nslots, 
+                                   rdcc_w0=rdcc_w0)
         # Access the dataset
         self.vol = self.hdf5_file['74ea1350-14c0-4bcc-a5d1-02fa49095951']  # Adjust the path to match your dataset
 
