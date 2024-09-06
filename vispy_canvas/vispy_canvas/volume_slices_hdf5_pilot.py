@@ -15,7 +15,7 @@ def volume_slices(volumes, x_pos=None, y_pos=None, z_pos=None,
                   preproc_funcs=None,
                   seismic_coord_system=True,
                   cmaps='grays', clims=None,
-                  interpolation='spline36', method='auto'):
+                  interpolation='nearest', method='auto'):
   """ Acquire a list of slices in the form of AxisAlignedImage.
   The list can be attached to a SeismicCanvas to visualize the volume
   in 3D interactively.
@@ -49,7 +49,7 @@ def volume_slices(volumes, x_pos=None, y_pos=None, z_pos=None,
   # z-axis down seismic coordinate system, or z-axis up normal system.
   #if seismic_coord_system:
   for i_vol in range(n_vol):
-      volumes[i_vol] = volumes[i_vol][:, :, ::-1]
+      volumes[i_vol] = volumes[i_vol][...]
       volumes[i_vol] = volumes[i_vol][:, :, ::-1]
   shape = volumes[0].shape
 
@@ -81,11 +81,13 @@ def volume_slices(volumes, x_pos=None, y_pos=None, z_pos=None,
         elif axis == 'z': return shape[0], shape[1]
       else: # will slice the volume and return an np array image
         pos = int(np.round(pos))
+        
         vol = volumes[i_vol]
         preproc_f = preproc_funcs[i_vol]
         if preproc_f is not None:
           if   axis == 'x': return preproc_f(vol[pos, :, :])
           elif axis == 'y': return preproc_f(vol[:, pos, :])
+
           elif axis == 'z': return preproc_f(vol[:, :, pos])
         else:
           if   axis == 'x': return vol[pos, :, :]
