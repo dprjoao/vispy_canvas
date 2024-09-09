@@ -2,6 +2,7 @@ import numpy as np
 from PyQt5 import QtWidgets, QtCore
 from vispy import scene
 from vispy_canvas import volume_slices, XYZAxis, CanvasControls, AxisAlignedImage
+from vispy_canvas.camera_mixin import InertiaTurntableCamera
 from typing import Union, Tuple, List, Dict
 import h5py
 
@@ -33,7 +34,7 @@ class CanvasWrapper(scene.SceneCanvas, CanvasControls):
         # for save
         savedir: str = './',
         title: str = '3D Viewer',
-    ):
+        *args, **kwargs):
 
         self.pngDir = savedir
         # Initialize the SceneCanvas with the proper parameters
@@ -42,7 +43,8 @@ class CanvasWrapper(scene.SceneCanvas, CanvasControls):
                                    keys=keys, 
                                    show=True,
                                    bgcolor=bgcolor,
-                                   title=title)
+                                   title=title,
+                                   dpi=1)
 
         self.unfreeze()
 
@@ -87,17 +89,17 @@ class CanvasWrapper(scene.SceneCanvas, CanvasControls):
         for slice_ in self.slices:
             slice_.parent = self.view.scene
 
-        # Set up a 3D camera
-        self.camera = scene.cameras.TurntableCamera(parent=self.view.scene, 
-                                                    azimuth=self.azimuth, 
-                                                    elevation=self.elevation, 
-                                                    fov=self.fov, 
-                                                    distance=1500,
-                                                    scale_factor = self.scale_factor)
-        
+        # Set up a 3D camera with inertia
+        self.camera = InertiaTurntableCamera(fov=45, elevation=30, azimuth=30)
 
         self.view.camera = self.camera
+        # Connect events
+        self.events.mouse_move.connect(self.camera.on_mouse_move)
+        self.events.mouse_press.connect(self.camera.on_mouse_move)
+        self.events.mouse_release.connect(self.camera.on_mouse_move)
+        self.events.mouse_release.connect(self.camera.apply_inertia)
 
+        self.view.camera = self.camera
 
         # Automatically set the range of the canvas, display, and wrap up.
         if auto_range: self.camera.set_range()
@@ -135,3 +137,4 @@ class CanvasWrapper(scene.SceneCanvas, CanvasControls):
         for node in self.slices:
             if isinstance(node, AxisAlignedImage) and node.axis == axis:
                 node._update_location(pos)
+
