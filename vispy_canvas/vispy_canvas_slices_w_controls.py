@@ -1,7 +1,7 @@
 from PyQt5 import QtWidgets, QtCore
 import numpy as np
 
-from vispy_canvas.seismic_canvas_hdf5_pilot import CanvasWrapper
+from vispy_canvas.seismic_canvas_old import CanvasWrapper
 
 class MyMainWindow(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
