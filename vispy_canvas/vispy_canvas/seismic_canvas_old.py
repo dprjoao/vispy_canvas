@@ -2,6 +2,7 @@ import numpy as np
 from PyQt5 import QtWidgets, QtCore
 from vispy import scene
 from vispy_canvas import volume_slices, XYZAxis, CanvasControls, AxisAlignedImage
+from vispy_canvas.viewbox_labeled_grid import GridLines
 from vispy_canvas.camera_mixin import InertiaTurntableCamera
 from typing import Union, Tuple, List, Dict
 import h5py
@@ -9,7 +10,7 @@ import h5py
 IMAGE_SHAPE = (600, 800)  # (height, width)
 CANVAS_SIZE = (800, 600)  # (width, height)
 
-class CanvasWrapper(scene.SceneCanvas, CanvasControls):
+class CanvasWrapper(scene.SceneCanvas, CanvasControls, GridLines):
     
     def __init__(
         self,
@@ -88,6 +89,26 @@ class CanvasWrapper(scene.SceneCanvas, CanvasControls):
         # Add the slices to the scene
         for slice_ in self.slices:
             slice_.parent = self.view.scene
+        
+        self.grid = GridLines(self.vol.shape)
+
+        # Draw cube edges
+        edges = self.grid.draw_edges()
+        self.view.add(edges)
+
+        # Draw axis labels
+        label_x_list, label_y_list, label_z_list, label_name_x, label_name_y, label_name_z = self.grid.draw_labels(parent=self.view)
+
+        # Add labels to the view
+        for label_x in label_x_list: 
+            self.view.add(label_x)
+        for label_y in label_y_list:
+            self.view.add(label_y)
+        for label_z in label_z_list:
+            self.view.add(label_z)
+        self.view.add(label_name_x)
+        self.view.add(label_name_y)
+        self.view.add(label_name_z)
 
         # Set up a 3D camera with inertia
         self.camera = InertiaTurntableCamera(fov=45, elevation=30, azimuth=30)
@@ -119,6 +140,8 @@ class CanvasWrapper(scene.SceneCanvas, CanvasControls):
         self.events.mouse_move.connect(self.axis.on_mouse_move)
 
         self.view.camera.set_range()
+
+        #self.center_data(self.slices)
 
         self.freeze()
 
