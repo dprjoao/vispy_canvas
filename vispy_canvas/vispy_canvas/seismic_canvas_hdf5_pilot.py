@@ -2,13 +2,14 @@ import numpy as np
 from PyQt5 import QtWidgets, QtCore
 from vispy import scene
 from vispy_canvas import volume_slices_hdf5_pilot, XYZAxis, CanvasControls, AxisAlignedImage
+from vispy_canvas.viewbox_labeled_grid import GridLines
 from typing import Union, Tuple, List, Dict
 import h5py
 
 IMAGE_SHAPE = (600, 800)  # (height, width)
 CANVAS_SIZE = (800, 600)  # (width, height)
 
-class CanvasWrapper(scene.SceneCanvas, CanvasControls):
+class CanvasWrapper(scene.SceneCanvas, CanvasControls, GridLines):
     
     def __init__(
         self,
@@ -75,7 +76,7 @@ class CanvasWrapper(scene.SceneCanvas, CanvasControls):
 
         self.xpos = 0
         self.ypos = 0
-        self.zpos = 0      
+        self.zpos = self.vol.shape[2] -1  
         # Generate the slices using the volume_slices function
         self.slices = volume_slices_hdf5_pilot.volume_slices(self.vol, 
                                     x_pos=self.xpos, 
@@ -105,6 +106,27 @@ class CanvasWrapper(scene.SceneCanvas, CanvasControls):
         # Add the slices to the scene
         for slice_ in self.slices:
             slice_.parent = self.view.scene
+
+        self.grid = GridLines(self.vol.shape)
+
+        # Draw cube edges
+        edges = self.grid.draw_edges()
+        self.view.add(edges)
+
+        # Draw axis labels
+        label_x_list, label_y_list, label_z_list, label_name_x, label_name_y, label_name_z = self.grid.draw_labels(parent=self.view)
+
+        # Add labels to the view
+        for label_x in label_x_list: 
+            self.view.add(label_x)
+        for label_y in label_y_list:
+            self.view.add(label_y)
+        for label_z in label_z_list:
+            self.view.add(label_z)
+        self.view.add(label_name_x)
+        self.view.add(label_name_y)
+        self.view.add(label_name_z)
+
 
         # Automatically set the range of the canvas, display, and wrap up.
         if auto_range: self.camera.set_range()
