@@ -48,9 +48,9 @@ def volume_slices(volumes, x_pos=None, y_pos=None, z_pos=None,
   slices_list = []
   # z-axis down seismic coordinate system, or z-axis up normal system.
   #if seismic_coord_system:
-  for i_vol in range(n_vol):
-      volumes[i_vol] = volumes[i_vol][...]
-      volumes[i_vol] = volumes[i_vol][:, :, ::-1]
+  #for i_vol in range(n_vol):
+  #    volumes[i_vol] = volumes[i_vol][...]
+  #    volumes[i_vol] = volumes[i_vol][:, :, ::-1]
   shape = volumes[0].shape
 
   # Automatically set clim (cmap range) if not specified.
@@ -80,19 +80,42 @@ def volume_slices(volumes, x_pos=None, y_pos=None, z_pos=None,
         elif axis == 'y': return shape[0], shape[2]
         elif axis == 'z': return shape[0], shape[1]
       else: # will slice the volume and return an np array image
+        
         pos = int(np.round(pos))
         
         vol = volumes[i_vol]
+        
         preproc_f = preproc_funcs[i_vol]
-        if preproc_f is not None:
-          if   axis == 'x': return preproc_f(vol[pos, :, :])
-          elif axis == 'y': return preproc_f(vol[:, pos, :])
 
-          elif axis == 'z': return preproc_f(vol[:, :, pos])
+        if preproc_f is not None:
+          if   axis == 'x':
+
+            data_slice = vol[pos, :, :]
+
+            return preproc_f(data_slice[:, ::-1])
+          
+          elif axis == 'y': 
+
+            data_slice = vol[:, pos, :]
+            return preproc_f(data_slice[:, ::-1])
+          
+          elif axis == 'z':
+
+            data_slice = vol[:, :, pos]
+            return preproc_f(data_slice)
+
         else:
-          if   axis == 'x': return vol[pos, :, :]
-          elif axis == 'y': return vol[:, pos, :]
-          elif axis == 'z': return vol[:, :, pos]
+          if   axis == 'x': 
+            data_slice = vol[pos, :, :]
+            return data_slice[:, ::-1]
+          
+          elif axis == 'y':
+            data_slice = vol[:, pos, :]
+            return data_slice[:, ::-1]
+          
+          elif axis == 'z':
+            data_slice = vol[:, :, abs(pos - shape[2] + 1)] 
+            return data_slice[::-1, ::-1]
     return slicing_at_axis
 
   # Organize the slice positions.
