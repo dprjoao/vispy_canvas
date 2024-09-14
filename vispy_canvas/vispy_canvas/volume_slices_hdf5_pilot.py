@@ -101,7 +101,7 @@ def volume_slices(volumes, x_pos=None, y_pos=None, z_pos=None,
           
           elif axis == 'z':
 
-            data_slice = vol[:, :, pos]
+            data_slice = vol[:, :, abs(pos - shape[2] + 1)]
             return preproc_f(data_slice)
 
         else:
@@ -114,8 +114,10 @@ def volume_slices(volumes, x_pos=None, y_pos=None, z_pos=None,
             return data_slice[:, ::-1]
           
           elif axis == 'z':
+
             data_slice = vol[:, :, abs(pos - shape[2] + 1)] 
-            return data_slice[::-1, ::-1]
+            return data_slice
+          
     return slicing_at_axis
 
   # Organize the slice positions.
