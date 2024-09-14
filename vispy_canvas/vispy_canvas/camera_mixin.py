@@ -12,7 +12,7 @@ class InertiaTurntableCamera(scene.cameras.TurntableCamera):
         self.inertia_active = False
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(lambda: self.apply_inertia())
-        self.timer.start(8)  # ~60 FPS refresh rate
+        self.timer.start(16)  # ~60 FPS refresh rate
 
 
     def on_mouse_move(self, event):
